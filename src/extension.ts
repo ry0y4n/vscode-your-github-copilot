@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import fs from "fs";
 import path from "path";
 import { BlobServiceClient } from "@azure/storage-blob";
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
@@ -61,13 +60,12 @@ export function activate(context: vscode.ExtensionContext) {
             downloadBlockBlobResponse.readableStreamBody as NodeJS.ReadableStream
         );
 
-        const basePrompt = `あなたはウェブアプリ開発におけるセキュリティの専門家です。以下の {# チェックリスト} を参考にし、セキュリティ上の問題点を指摘してください。問題点がある場合は、修正案も提示してください。\n\n# チェックリスト\n\n${content}`;
+        const basePrompt = `You are a security expert in web app development. Use the following checklist to identify vulnerabilities: \n\n# Check List\n\n${content}`;
 
         const messaages: vscode.LanguageModelChatMessage[] = [
             vscode.LanguageModelChatMessage.User(basePrompt),
         ];
 
-        // 過去のチャット履歴を取得
         let previousMessages = context.history
             .map(
                 (
@@ -96,12 +94,11 @@ export function activate(context: vscode.ExtensionContext) {
 
         messaages.push(...previousMessages);
 
-        // ここでリファレンスファイルを処理する
         const { hasActiveFile, sourceCode, fileUri } = getCurrentSourceCode();
 
         let userPrompt = "";
         if (hasActiveFile) {
-            userPrompt = `${request.prompt}\n\n# ソース コード\n\`\`\`\n${sourceCode}\`\`\``;
+            userPrompt = `${request.prompt}\n\n# Source Code\n\`\`\`\n${sourceCode}\`\`\``;
             stream.reference(fileUri);
         } else {
             userPrompt = request.prompt;
